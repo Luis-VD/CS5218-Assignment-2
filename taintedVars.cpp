@@ -48,8 +48,7 @@ int main(int argc, char **argv)
     for (auto &BB: *F){
 	std::set<Instruction*> emptySet;
     	analysisMap[getSimpleNodeLabel(&BB)] = emptySet;
-    }  
-    printAnalysisMap(analysisMap);    
+    }      
     // Note: All variables are of type "alloca" instructions. Ex.
     // Variable a: %a = alloca i32, align 4
 
