@@ -48,7 +48,7 @@ int main(int argc, char **argv)
     for (auto &BB: *F){
 	std::set<Instruction*> emptySet;
     	analysisMap[getSimpleNodeLabel(&BB)] = emptySet;
-    }      
+    }       
     // Note: All variables are of type "alloca" instructions. Ex.
     // Variable a: %a = alloca i32, align 4
 
@@ -81,12 +81,13 @@ int main(int argc, char **argv)
 
         // Extract updatedInitializedVars (The list of initialized variables 
 	    // after BB) from BB and initializedVars
+        errs() << "Working on basic block: " << getSimpleNodeLabel(BB) << "\n";
         std::set<Instruction*> updatedInitializedVars = findInitializedVars(BB,initializedVars);
         
-        // Update the analysis of node BB in the MAP to the union of currently sored InitializedVars 
+        // Update the analysis of node BB in the MAP to the union of currently stored InitializedVars 
         // and the generated updatedInitializedVars
-        std::set<Instruction*> unionInitializedVars = union_sets(analysisMap[BB->getName()],updatedInitializedVars); 
-       	analysisMap[BB->getName()] = unionInitializedVars;
+        std::set<Instruction*> unionInitializedVars = union_sets(analysisMap[getSimpleNodeLabel(BB)],updatedInitializedVars); 
+       	analysisMap[getSimpleNodeLabel(BB)] = unionInitializedVars;
         
         // Extract the last instruction in the stack (Terminator Instruction)
         const TerminatorInst *TInst = BB->getTerminator();
@@ -97,26 +98,30 @@ int main(int argc, char **argv)
 	    for (int i = 0;  i < NSucc; ++i) {
             // for all successor basic blocks, add them plus the updatedInitializedVars to the stack 
             // if fixpoint condition is not met.
-            //
             // Fixpoint Condition:
             // We only add successor nodes to the stack if the union of the new list of initialzied variables for 
             // the successor node is different from the currently stored list of initialzied variables
             // for the successor node.
             
             // Load the current stored analysis for a successor node
+            errs() << "Successor number: " << i << "\n";
             BasicBlock *Succ = TInst->getSuccessor(i);    
-            std::set<Instruction*> succInitializedVars = analysisMap[Succ->getName()];
+            std::set<Instruction*> succInitializedVars = analysisMap[getSimpleNodeLabel(Succ)];
 	        if (succInitializedVars != unionInitializedVars){
 	            std::pair<BasicBlock*,std::set<Instruction*> > succAnalysisNode = std::make_pair(Succ,updatedInitializedVars);
 	           traversalStack.push(succAnalysisNode);
             }
+            else{
+                errs() << "False condition" << i << "\n";
+            }
+        printAnalysisMap(analysisMap);
 
     	}	
     }
     
     // We now print the analysis results:
     
-    for (auto& row : analysisMap){
+    /*for (auto& row : analysisMap){
         std::set<Instruction*> initializedVars = row.second;
         std::string BBLabel = row.first;
 	    errs() << BBLabel << ":\n";
@@ -125,7 +130,7 @@ int main(int argc, char **argv)
 	       var->dump();
 	    }
         errs() << "\n";
-    }      
+    }   */   
    
     return 0;
 }
@@ -142,8 +147,6 @@ int main(int argc, char **argv)
 std::set<Instruction*> findInitializedVars(BasicBlock* BB,
 				    std::set<Instruction*> initializedVars)
 {
-  // updatedInitializedVars is first initialized to the current list
-  // of initialized variables 
   std::set<Instruction*> updatedInitializedVars(initializedVars);
   
   // Loop through instructions in BB
@@ -163,9 +166,8 @@ std::set<Instruction*> findInitializedVars(BasicBlock* BB,
       Value* v = I.getOperand(1);
       
       // Next we convert the instance of Value class to a variable
-      // Note: All variables are of type "alloca" instructions. Ex.
-      // Variable a: %a = alloca i32, align 4
-      Instruction* var = dyn_cast<Instruction>(v); 
+      Instruction* var = dyn_cast<Instruction>(v);
+      var->dump(); 
       
       // Finally, var is added to updatedInitializedVars
       updatedInitializedVars.insert(var);	
