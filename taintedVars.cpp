@@ -189,10 +189,10 @@ std::set<Instruction*> findInitializedVars(BasicBlock* BB,
 
       //found = std::find(my_list.begin(), my_list.end(), my_var) != my_list.end()
       if (tainted.find(getSimpleValueLabel(left))!= tainted.end()){
-        errs() << "Taint found!" << "\n";
         Instruction* var = dyn_cast<Instruction>(v);
         updatedInitializedVars.insert(var);
         tainted.insert(getSimpleValueLabel(v));
+        errs() << "Taint found!" << "\n";
       }
       // Next we convert the instance of Value class to a variable
       errs() << "Left side: " << getSimpleValueLabel(left) << "\n";
@@ -217,7 +217,7 @@ std::set<Instruction*> findInitializedVars(BasicBlock* BB,
       //Value* v = I.getValue();
 
       //found = std::find(my_list.begin(), my_list.end(), my_var) != my_list.end()
-      if (getSimpleValueLabel(left) == "source"){
+      if (tainted.find(getSimpleValueLabel(left))!= tainted.end()){
         //errs() << "Taint found!" << "\n";
         tainted.insert(getSimpleInstructionLabel(&I));
         Instruction* var = dyn_cast<Instruction>(left);
