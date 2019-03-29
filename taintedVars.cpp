@@ -128,16 +128,7 @@ int main(int argc, char **argv)
     }
     printAnalysisMap(analysisMap);
 
-    std::set<std::string>::iterator it = tainted.begin();
- 
-    // Iterate till the end of set
-    while (it != tainted.end())
-    {
-	    // Print the element
-	    std::cout << (*it) << " , ";
-	    //Increment the iterator
-	    it++;
-    }
+
     // We now print the analysis results:
     
     /*for (auto& row : analysisMap){
@@ -192,11 +183,11 @@ std::set<Instruction*> findInitializedVars(BasicBlock* BB,
         Instruction* var = dyn_cast<Instruction>(v);
         updatedInitializedVars.insert(var);
         tainted.insert(getSimpleValueLabel(v));
-        errs() << "Taint found!" << "\n";
+        //errs() << "Taint found!" << "\n";
       }
       // Next we convert the instance of Value class to a variable
-      errs() << "Left side: " << getSimpleValueLabel(left) << "\n";
-      errs() << "Right side: " << getSimpleValueLabel(v) << "\n";
+      //errs() << "Left side: " << getSimpleValueLabel(left) << "\n";
+      //errs() << "Right side: " << getSimpleValueLabel(v) << "\n";
       
       //var->dump(); 
       
@@ -222,6 +213,35 @@ std::set<Instruction*> findInitializedVars(BasicBlock* BB,
         tainted.insert(getSimpleInstructionLabel(&I));
         Instruction* var = dyn_cast<Instruction>(left);
         updatedInitializedVars.insert(var);
+      }
+      // Next we convert the instance of Value class to a variable
+      //errs() << "Left side: " << getSimpleValueLabel(left) << "\n";
+      //errs() << "Right side: " << getSimpleInstructionLabel(&I) << "\n";
+      //Instruction* var = dyn_cast<Instruction>(v);
+      //var->dump(); 
+      
+      // Finally, var is added to updatedInitializedVars
+      //updatedInitializedVars.insert(var);	
+    }
+
+    if (isa<AllocaInst>(I)){
+      // A Store Instruction is of the type:
+      // Store Arg0, Arg1 
+      // Where Arg0 is a %reg and Arg1 is a %variable.
+      // We need to store the %variable since it is initialized 
+      
+      // We load Arg1 to a an instance of the class Value 
+      // Note: All instructions and arguments are instaces of the Value class
+
+      Value* left = I.getOperand(0);
+      //Value* v = I.getValue();
+
+      //found = std::find(my_list.begin(), my_list.end(), my_var) != my_list.end()
+      if (tainted.find(getSimpleInstructionLabel(&I))!= tainted.end()){
+        //errs() << "Taint alloc found!" << "\n";
+        tainted.insert(getSimpleInstructionLabel(&I));
+        //Instruction* var = dyn_cast<Instruction>(left);
+        updatedInitializedVars.insert(&I);
       }
       // Next we convert the instance of Value class to a variable
       //errs() << "Left side: " << getSimpleValueLabel(left) << "\n";
